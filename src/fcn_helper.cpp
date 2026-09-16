@@ -1,8 +1,8 @@
-#include "fcn_helper.hpp"
-#include <arpa/inet.h>
 #include <ostream>
 #include <iomanip>
+#include <format>
 #include "header.hpp"
+#include "fcn_helper.hpp"
 
 
 //format mac address to print in hexa

@@ -5,7 +5,7 @@
 class NIC {
 public:
     virtual bool open(const std::string& name) = 0;
-    virtual ssize_t read(uint8_t* buffer, size_t len) = 0;
+    virtual std::ptrdiff_t read(uint8_t* buffer, size_t len) = 0;
     virtual void close() = 0;
     virtual ~NIC() = default;
     virtual int getfd() = 0;
@@ -17,7 +17,7 @@ public:
     ~NIC_Linux();
 
     bool open(const std::string& name) override;
-    ssize_t read(uint8_t* buffer, size_t len) override;
+    std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
     void close() override;
     int getfd() override;
 
@@ -31,10 +31,11 @@ public:
     ~NIC_Windows();
 
     bool open(const std::string& name) override;
-    ssize_t read(uint8_t* buffer, size_t len) override;
+    std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
     void close() override;
     int getfd() override;
 
 private:
     int _fd; // check Npcap (discord)
+    void* pcap = nullptr;
 };

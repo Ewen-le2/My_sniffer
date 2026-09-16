@@ -1,4 +1,5 @@
 #include "nic.hpp"
+#include <cstdint>
 #include <fcntl.h>
 #include <linux/if_ether.h>
 #include <netinet/in.h>
@@ -25,7 +26,7 @@ bool NIC_Linux::open(const std::string& name) {
     return true;
 }
 
-ssize_t NIC_Linux::read(uint8_t* buffer, size_t len) {
+std::ptrdiff_t NIC_Linux::read(uint8_t* buffer, size_t len) {
     return recvfrom(_fd, buffer, len, 0, nullptr, nullptr);
 }
 
