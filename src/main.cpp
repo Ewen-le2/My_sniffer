@@ -3,13 +3,18 @@
 #include "nic.hpp"
 #include <fcntl.h>
 #include <iomanip>
+#include <iterator>
 #include <memory>
+#include <iostream>
+#include <ostream>
+#include "get_adapters.hpp"
 
 #ifdef _WIN32
 
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #include <conio.h>
+    #pragma comment(lib, "iphlpapi.lib")
 
 #else
     #include <fcntl.h>
@@ -62,29 +67,20 @@ int main(void)
 {
     uint8_t buffer [65536]; //buffer only for reading raw packet
     std::unique_ptr<NIC> nic;
+    std::unique_ptr<NIC_Factory> nic_factory;
 
-    #ifdef _WIN32
-        nic = std::make_unique<NIC_Windows>();
-    #else
-        nic = std::make_unique<NIC_Linux>();
-    #endif
+    list_adapters();
 
-    #ifndef _WIN32
-        int stdin_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    nic_factory->CreateNIC(nic);
 
-        if (stdin_flags < 0) {
-            perror("fcntl");
-            return 1;
-        }
 
-        if (fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK) < 0) {
-            perror("fcntl");
-            return 1;
-        }
+    std::cout << "Enter Card Name: " << std::endl;
+    char name[256];
+    if (!std::cin.get(name, 256)) {
+        throw std::runtime_error("Failed to read character");
+    }
 
-    #endif
-
-    if(!nic->open("\\Device\\NPF_{E73F39E4-CD1E-4C70-9266-05DBC49115DD}")) {
+    if(!nic->open(name)) {
         std::cerr << "Failed to open NIC\n";
         return 1;
     }
@@ -99,49 +95,34 @@ int main(void)
                 }
             }
         }
-#ifdef _WIN32
         std::ptrdiff_t bytes = nic->read(buffer, sizeof(buffer));
-        if (bytes > 0) {
-#else
-            struct pollfd fd{};
-            fd.fd = nic->getfd();
-            fd.events = POLLIN;
-            int ret = poll(&fd, 1, 10);
-
-            if (ret < 0) {
-                perror("poll");
-                break;
-            }
-            if (ret == 0) {
-                continue;
-            }
-            if (!(fd.revents & POLLIN)) {
-                continue;
-            }
-            std::ptrdiff_t bytes = nic->read(buffer, sizeof(buffer));
-
-            if (bytes > 0) {
-    #endif
-                struct eth_header *hdr = reinterpret_cast<struct eth_header *>(buffer);
-                switch (ntohs(hdr->ethertype)) {
-                    case ETH_T_IPV4:
-                        std::cout << "IPV4\n";
-                        std::cout << *hdr << std::endl;
-                        break;
-                    case ETH_T_IPV6:
-                        std::cout << "IPV6\n";
-                        std::cout << *hdr << std::endl;
-                        break;
-                    case ETH_T_ARP:
-                        std::cout << "ARP\n";
-                        std::cout << *hdr << std::endl;
-                        break;
-                    default:
-                        std::cout << *hdr << std::endl;
-                        std::cout << "Unknown 0x" << std::hex << std::setw(4) << std::setfill('0') << ntohs(hdr->ethertype) << std::endl;
-                        break;
-                }
-            }
+        if (bytes == 0) {
+            return 0;
         }
+        struct eth_header *hdr = reinterpret_cast<struct eth_header *>(buffer);
+        switch (ntohs(hdr->ethertype)) {
+            case ETH_T_IPV4:
+                std::cout << "IPV4\n";
+                std::cout << *hdr << std::endl;
+                break;
+            case ETH_T_IPV6:
+                std::cout << "IPV6\n";
+                std::cout << *hdr << std::endl;
+                break;
+            case ETH_T_ARP:
+                std::cout << "ARP\n";
+                std::cout << *hdr << std::endl;
+                break;
+            case ETH_T_VLAN:
+                std::cout << "VLAN\n";
+                std::cout << *hdr << std::endl; // need fix (+4 bytes before ethtype, ID: 8180 and TPID)
+                break;
+            default:
+                std::cout << *hdr << std::endl;
+                std::cout << "Unknown 0x" << std::hex << std::setw(4) << std::setfill('0') << ntohs(hdr->ethertype) << std::endl;
+                break;
+
+        }
+    }
     return 0;
 }

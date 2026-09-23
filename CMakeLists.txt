@@ -10,6 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(My_sniffer
     src/main.cpp
     src/fcn_helper.cpp
+    src/nic_factory.cpp
+    src/nic/get_adapters.cpp
 )
 
 if(WIN32)

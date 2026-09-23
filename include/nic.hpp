@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <string>
+#include "pcap.h"
 
 class NIC {
 public:
@@ -8,7 +10,13 @@ public:
     virtual std::ptrdiff_t read(uint8_t* buffer, size_t len) = 0;
     virtual void close() = 0;
     virtual ~NIC() = default;
-    virtual int getfd() = 0;
+};
+
+class NIC_Factory {
+    public:
+        NIC_Factory();
+        ~NIC_Factory();
+        void CreateNIC(std::unique_ptr<NIC> &nic);
 };
 
 class NIC_Linux : public NIC {
@@ -19,7 +27,6 @@ public:
     bool open(const std::string& name) override;
     std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
     void close() override;
-    int getfd() override;
 
 private:
     int _fd;
@@ -33,9 +40,7 @@ public:
     bool open(const std::string& name) override;
     std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
     void close() override;
-    int getfd() override;
 
 private:
-    int _fd; // check Npcap (discord)
-    void* pcap = nullptr;
+    pcap_t* pcap = nullptr;
 };

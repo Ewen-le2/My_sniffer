@@ -29,6 +29,7 @@ struct header {
 #define ETH_T_IPV4  0x0800
 #define ETH_T_IPV6  0x86DD
 #define ETH_T_ARP   0x0806
+#define ETH_T_VLAN  0x8100
 
 struct eth_header {
     uint8_t dst[6];

@@ -36,7 +36,3 @@ void NIC_Linux::close() {
         _fd = -1;
     }
 }
-
-int NIC_Linux::getfd() {
-    return _fd;
-}
