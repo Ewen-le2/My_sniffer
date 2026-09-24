@@ -12,6 +12,12 @@ add_executable(My_sniffer
     src/fcn_helper.cpp
     src/nic_factory.cpp
     src/nic/get_adapters.cpp
+    src/keyboard.cpp
+
+    src/protocol_parsing/ethernet.cpp
+    src/protocol_parsing/ipv4.cpp
+    src/protocol_parsing/tcp.cpp
+    src/protocol_parsing/udp.cpp
 )
 
 if(WIN32)

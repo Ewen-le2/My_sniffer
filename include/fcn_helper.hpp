@@ -11,8 +11,16 @@
 #endif
 
 
-#include "header.hpp"
+#include "protocol.hpp"
 
 std::ostream& print_mac(std::ostream& os, const uint8_t *mac);
 
-std::ostream& operator<<(std::ostream& os, const eth_header& h);
+std::ostream& operator<<(std::ostream& os, const ETH_header& h);
+
+std::ostream& operator<<(std::ostream& os, const ETH_packet& h);
+
+std::ostream& print_ipv4(std::ostream& os, const uint8_t *ip);
+
+void printHex(const unsigned char *buf, size_t len);
+
+void print_time(ETH_packet &pck);

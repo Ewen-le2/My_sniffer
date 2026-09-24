@@ -1,6 +1,6 @@
 Remove getfd() from NIC /
 
-Remove poll/select from main
+Remove poll/select from main /
 
 
 #################################
@@ -39,22 +39,22 @@ Move all waiting logic into each backend (poll/timeout in NIC::read)
 
 Fix Windows LEAK PTR npcap /
 
-Store privatly ptr/fd (pcap_t* as void*)
+Store privatly ptr/fd (pcap_t* as void*) /
 
-Remove os specific from all file exepct NIC_OS.cpp (platform inside same folder)
+Remove os specific from all file exepct NIC_OS.cpp (platform inside same folder) /
 
-Detect TCP/UDP protocol
+Detect TCP/UDP protocol /
 
 
 
 AFTER:
 
 
-Create better Packet Struct
+Create better Packet Struct /
 
-Write buffer inside
+Write buffer inside /
 
-Create Packet Parser
+Create Packet Parser /
 
     - Parse Ethernet
     - Parse IPv4
@@ -63,7 +63,11 @@ Create Packet Parser
         - Parse TCP
         - Parse UDP
 
-Create Storage for packet
+Create Storage for packet /
 
+
+-----------------------------------------
 Create Patern Detector
 (I have no id of what to do ask FU mercredi)
+
+- google strange request

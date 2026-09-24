@@ -1,6 +1,12 @@
 #include "get_adapters.hpp"
 #include "pcap.h"
 #include <iostream>
+#include <sys/socket.h>
+
+#ifndef _WIN32
+    #include <sys/types.h>
+    #include <ifaddrs.h>
+#endif
 
 int list_adapters () {
 
@@ -36,6 +42,16 @@ int list_adapters () {
     }
 #else
     int listLinuxAdapters() {
+        ifaddrs *addr;
+        getifaddrs(&addr);
+        ifaddrs *tmp = addr;
+        while (tmp != nullptr) {
+            if (tmp->ifa_addr->sa_family == AF_PACKET) {
+                std::cout << tmp->ifa_name << std::endl;
+            }
+            tmp = tmp->ifa_next;
+        };
+        freeifaddrs(addr);
         return true;
     }
 #endif
