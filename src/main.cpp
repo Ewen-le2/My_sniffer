@@ -1,7 +1,6 @@
 #include "fcn_helper.hpp"
 #include "nic.hpp"
 #include <iomanip>
-//#include <iostream>
 #include <iostream>
 #include <optional>
 //#include <ostream>
@@ -52,7 +51,7 @@ int main(void)
             }
         }
         std::ptrdiff_t bytes = nic->read(buffer, sizeof(buffer));
-        if (bytes == 0) return 0;
+        if (bytes == 0) continue;
         if (bytes == -1) continue;
 
         std::optional<ETH_packet> packet = parse_ethernet(buffer, bytes);

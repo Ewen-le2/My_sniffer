@@ -9,7 +9,7 @@ NIC_Windows::~NIC_Windows() {
 
 bool NIC_Windows::open(const std::string& name)
 {
-    pcap_t* _pcap = reinterpret_cast<pcap_t *>(pcap);
+    pcap_t* _pcap = pcap;
     char errbuf[PCAP_ERRBUF_SIZE]{};
 
     _pcap = pcap_open_live(
@@ -75,6 +75,9 @@ std::ptrdiff_t NIC_Windows::read(uint8_t* buffer, size_t len)
 
 
 void NIC_Windows::close() {
-    pcap_close(pcap);
+    if (pcap != nullptr) {
+        pcap_close(pcap);
+        pcap = nullptr;
+    }
     return;
 }
