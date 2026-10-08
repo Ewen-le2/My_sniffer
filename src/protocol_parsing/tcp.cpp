@@ -1,7 +1,8 @@
+#include "protocol_parsing/tcp.hpp"
 #include "protocol.hpp"
 
 std::optional<TCP_packet> parse_tcp(IPV4_packet *pck) {
-    if (pck->payload_len < sizeof(TCP_packet))
+    if (pck->payload_len < sizeof(TCP_header))
         return std::nullopt;
     TCP_header *hdr = reinterpret_cast<struct TCP_header*>(pck->payload);
     TCP_packet data{};

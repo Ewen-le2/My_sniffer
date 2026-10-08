@@ -1,11 +1,11 @@
 #include "get_adapters.hpp"
-#include "pcap.h"
 #include <iostream>
 
 #ifndef _WIN32
     #include <sys/types.h>
     #include <ifaddrs.h>
     #include <sys/socket.h>
+    #include "pcap.h"
 #endif
 
 int list_adapters () {

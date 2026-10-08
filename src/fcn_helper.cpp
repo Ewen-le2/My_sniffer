@@ -3,8 +3,6 @@
 #include <format>
 #include "fcn_helper.hpp"
 #include "protocol.hpp"
-#include "protocol_parsing/ethernet.hpp"
-
 
 //format mac address to print in hexa
 std::ostream& print_mac(std::ostream& os, const uint8_t *mac) {

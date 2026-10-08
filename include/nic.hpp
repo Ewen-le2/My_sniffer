@@ -2,45 +2,52 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include "pcap.h"
 
-class NIC {
-public:
-    virtual bool open(const std::string& name) = 0;
-    virtual std::ptrdiff_t read(uint8_t* buffer, size_t len) = 0;
-    virtual void close() = 0;
-    virtual ~NIC() = default;
-};
+#ifdef _WIN32
+    #include "pcap.h"
+#endif
 
-class NIC_Factory {
+#ifdef __linux__
+    class NIC {
     public:
-        NIC_Factory();
-        ~NIC_Factory();
-        void CreateNIC(std::unique_ptr<NIC> &nic);
-};
+        virtual bool open(const std::string& name) = 0;
+        virtual std::ptrdiff_t read(uint8_t* buffer, size_t len) = 0;
+        virtual void close() = 0;
+        virtual ~NIC() = default;
+    };
 
-class NIC_Linux : public NIC {
-public:
-    NIC_Linux();
-    ~NIC_Linux();
+    class NIC_Factory {
+        public:
+            NIC_Factory();
+            ~NIC_Factory();
+            void CreateNIC(std::unique_ptr<NIC> &nic);
+    };
 
-    bool open(const std::string& name) override;
-    std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
-    void close() override;
+    class NIC_Linux : public NIC {
+    public:
+        NIC_Linux();
+        ~NIC_Linux();
 
-private:
-    int _fd;
-};
+        bool open(const std::string& name) override;
+        std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
+        void close() override;
 
-class NIC_Windows : public NIC {
-public:
-    NIC_Windows();
-    ~NIC_Windows();
+    private:
+        int _fd;
+    };
+#endif
 
-    bool open(const std::string& name) override;
-    std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
-    void close() override;
+#ifdef _WIN32
+    class NIC_Windows : public NIC {
+    public:
+        NIC_Windows();
+        ~NIC_Windows();
 
-private:
-    pcap_t* pcap = nullptr;
-};
+        bool open(const std::string& name) override;
+        std::ptrdiff_t read(uint8_t* buffer, size_t len) override;
+        void close() override;
+
+    private:
+        pcap_t* pcap = nullptr;
+    };
+#endif

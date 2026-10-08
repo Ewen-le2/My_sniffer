@@ -13,4 +13,4 @@ std::optional<ETH_packet> parse_ethernet(uint8_t* buffer, size_t bytes) {
     memcpy(&pck.hdr, buffer, sizeof(pck.hdr));
     pck.payload.assign(buffer + sizeof(pck.hdr), buffer + bytes);
     return pck;
-};
+}

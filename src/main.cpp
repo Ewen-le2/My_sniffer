@@ -1,21 +1,34 @@
 #include "fcn_helper.hpp"
 #include "nic.hpp"
 #include <iomanip>
+#include <ios>
 #include <iostream>
+#include <memory>
 #include <optional>
-//#include <ostream>
 #include <deque>
+#include <ostream>
 #include "get_adapters.hpp"
 #include "keyboard.hpp"
 #include "protocol.hpp"
-#include "protocol_parsing/ethernet.hpp"
+#include "filter.hpp"
+#include "protocol_parsing/ipv4.hpp"
+#include "protocol_parsing/udp.hpp"
 
+
+void help(void) {
+    std::cout << "q \t Exit app\n";
+    std::cout << "h \t print this page\n";
+    std::cout << "f \t enter filer mode\n";
+    std::cout << "    Filter mode function:\n";
+    std::cout << "\t proto \t ipv4, tcp, udp\n";
+    std::cout << "\t port \t tcp, udp port\n";
+}
 
 int main(void)
 {
     uint8_t buffer [65536]; //buffer only for reading raw packet
     std::unique_ptr<NIC> nic;
-    std::unique_ptr<NIC_Factory> nic_factory;
+    std::unique_ptr<NIC_Factory> nic_factory = std::make_unique<NIC_Factory>();
 
     list_adapters();
 
@@ -33,21 +46,45 @@ int main(void)
     }
 
     Keyboard keyboard;
+    constexpr std::size_t MAX_HISTORY = 5000;
     std::deque<ETH_packet> history;
 
-    std::cout << "Press q to exit: " << std::endl;
+    std::cout << "Press 'h' for more command\n";
+    std::cout << "Press q to exit: \n" << std::endl;
+    std::string command;
+    bool command_mode = false;
     while (true) {
         char c;
         if (keyboard.read(c)) {
-            if (c == 'q' || c == 'Q')
-                break;
-        }
-        if (keyboard.read(c)) {
-            if (c == 'h') {
-                for (ETH_packet packet : history)
-                    print_time(packet);
-                    //std::cout << packet << std::endl;
-                break;
+            if (!command_mode)
+            {
+                if (c == 'q') break;
+                if (c == 'h') help();
+                if (c == 'f') {
+                    command_mode = true;
+                    command.clear();
+
+                    std::cout << "\nfilter> ";
+                    std::flush(std::cout);
+                }
+            }
+            else
+            {
+                if (c == '\b' || c == 127) {
+                    if (!command.empty()) {
+                        command.pop_back();
+                        std::cout << "\b \b" << std::flush;
+                    }
+                }
+                if (c == '\n' || c == '\r') {
+                    execute_filter(command, history);
+
+                    command_mode = false;
+                    std::cout << "\n";
+                } else {
+                    command += c;
+                    std::cout << c << std::flush;
+                }
             }
         }
         std::ptrdiff_t bytes = nic->read(buffer, sizeof(buffer));
@@ -57,31 +94,18 @@ int main(void)
         std::optional<ETH_packet> packet = parse_ethernet(buffer, bytes);
         if (!packet.has_value()) continue;
         history.push_back(std::move(*packet));
-
-        switch (ntohs(packet->hdr.ethertype)) {
-            case ETH_T_IPV4:
-                std::cout << "IPV4\n";
-                std::cout << packet->hdr << std::endl;
-                break;
-
-            case ETH_T_IPV6:
-                std::cout << "IPV6\n";
-                std::cout << packet->hdr << std::endl;
-                break;
-
-            case ETH_T_ARP:
-                std::cout << "ARP\n";
-                std::cout << packet->hdr << std::endl;
-                break;
-
-            case ETH_T_VLAN:
-                std::cout << "VLAN\n";
-                std::cout << packet->hdr << std::endl;
-                break;
-            default:
-                std::cout << packet->hdr << std::endl;
-                std::cout << "Unknown 0x" << std::hex << std::setw(4) << std::setfill('0') << ntohs(packet->hdr.ethertype) << std::endl;
-                break;
+        while (history.size() > MAX_HISTORY)
+            history.pop_front();
+        if (ntohs(packet->hdr.ethertype) == ETH_T_IPV4) {
+            std::optional<IPV4_packet> ipv4 = parse_ipv4(&history.back());
+            if (ipv4.has_value() && ipv4->hdr.Protocol == Proto_UDP) {
+                std::optional<UDP_packet> udp = parse_udp(&ipv4.value());
+                if (udp.has_value()) {
+                    uint16_t src = ntohs(*reinterpret_cast<const uint16_t*>(udp->hdr.src_port));
+                    uint16_t dst = ntohs(*reinterpret_cast<const uint16_t*>(udp->hdr.dst_port));
+                    std::cout << "src = " << src << "dst = " << dst << std::endl;
+                }
+            }
         }
     }
     return 0;

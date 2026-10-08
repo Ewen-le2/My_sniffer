@@ -1,7 +1,8 @@
+#include "protocol_parsing/udp.hpp"
 #include "protocol.hpp"
 
 std::optional<UDP_packet> parse_udp(IPV4_packet *pck) {
-    if (pck->payload_len < sizeof(UDP_packet))
+    if (pck->payload_len < sizeof(UDP_header))
         return std::nullopt;
     UDP_header *hdr = reinterpret_cast<struct UDP_header*>(pck->payload);
     UDP_packet data{};

@@ -1,7 +1,0 @@
-
-Add a timeout to NIC::read (replace poll and check windows)
-
-Move all waiting logic into each backend (poll/timeout in NIC::read)
-
------------------------------------------
-Create Patern Detector
