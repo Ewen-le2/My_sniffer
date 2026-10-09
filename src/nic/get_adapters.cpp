@@ -5,6 +5,9 @@
     #include <sys/types.h>
     #include <ifaddrs.h>
     #include <sys/socket.h>
+#endif
+
+#ifdef _WIN32
     #include "pcap.h"
 #endif
 

@@ -11,17 +11,42 @@
 #include "keyboard.hpp"
 #include "protocol.hpp"
 #include "filter.hpp"
-#include "protocol_parsing/ipv4.hpp"
-#include "protocol_parsing/udp.hpp"
-
+#include "analysis.hpp"
+#include "version.hpp"
 
 void help(void) {
-    std::cout << "q \t Exit app\n";
-    std::cout << "h \t print this page\n";
-    std::cout << "f \t enter filer mode\n";
-    std::cout << "    Filter mode function:\n";
-    std::cout << "\t proto \t ipv4, tcp, udp\n";
-    std::cout << "\t port \t tcp, udp port\n";
+    std::cout << "q          Exit app\n";
+    std::cout << "h          Print this page\n";
+    std::cout << "v          Print the app version\n";
+    std::cout << "s          Print saved hisotry\n";
+    std::cout << "a          Show analysis alerts\n";
+    std::cout << "f          Enter filter mode\n";
+    std::cout << "\nFilter commands:\n";
+    std::cout << "   proto <ipv4|tcp|udp>     Filter by protocol\n";
+    std::cout << "   port <number>            Match source OR destination port\n";
+    std::cout << "   port <number> in         Match destination port only\n";
+    std::cout << "   port <number> out        Match source port only\n";
+    std::cout << "   ip <address>             Match source OR destination IPv4\n";
+    std::cout << "   ip <address> in          Match destination IPv4 only\n";
+    std::cout << "   ip <address> out         Match source IPv4 only\n";
+    std::cout << "   mac <address>            Match source OR destination MAC\n";
+    std::cout << "   mac <address> in         Match destination MAC only\n";
+    std::cout << "   mac <address> out        Match source MAC only\n";
+    std::cout << "\nExamples:\n";
+    std::cout << "   proto tcp\n";
+    std::cout << "   port 443\n";
+    std::cout << "   port 53 in\n";
+    std::cout << "   ip 192.168.1.10 out\n";
+    std::cout << "   mac aa:bb:cc:dd:ee:ff in\n";
+}
+
+void print_history(std::deque<ETH_packet> history) {
+    for (const ETH_packet& eth : history)
+        print_all(eth);
+}
+
+void print_version() {
+    std::cout << "Version: " << SNIFFER_VERSION << std::endl;
 }
 
 int main(void)
@@ -48,6 +73,7 @@ int main(void)
     Keyboard keyboard;
     constexpr std::size_t MAX_HISTORY = 5000;
     std::deque<ETH_packet> history;
+    Analysis analysis;
 
     std::cout << "Press 'h' for more command\n";
     std::cout << "Press q to exit: \n" << std::endl;
@@ -60,6 +86,9 @@ int main(void)
             {
                 if (c == 'q') break;
                 if (c == 'h') help();
+                if (c == 's') print_history(history);
+                if (c == 'a') analysis.print_alerts();
+                if (c == 'v') print_version();
                 if (c == 'f') {
                     command_mode = true;
                     command.clear();
@@ -73,7 +102,7 @@ int main(void)
                 if (c == '\b' || c == 127) {
                     if (!command.empty()) {
                         command.pop_back();
-                        std::cout << "\b \b" << std::flush;
+                        std::cout << "\b" << std::flush;
                     }
                 }
                 if (c == '\n' || c == '\r') {
@@ -96,17 +125,7 @@ int main(void)
         history.push_back(std::move(*packet));
         while (history.size() > MAX_HISTORY)
             history.pop_front();
-        if (ntohs(packet->hdr.ethertype) == ETH_T_IPV4) {
-            std::optional<IPV4_packet> ipv4 = parse_ipv4(&history.back());
-            if (ipv4.has_value() && ipv4->hdr.Protocol == Proto_UDP) {
-                std::optional<UDP_packet> udp = parse_udp(&ipv4.value());
-                if (udp.has_value()) {
-                    uint16_t src = ntohs(*reinterpret_cast<const uint16_t*>(udp->hdr.src_port));
-                    uint16_t dst = ntohs(*reinterpret_cast<const uint16_t*>(udp->hdr.dst_port));
-                    std::cout << "src = " << src << "dst = " << dst << std::endl;
-                }
-            }
-        }
+        analysis.process(history.back());
     }
     return 0;
 }

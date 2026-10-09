@@ -2,7 +2,7 @@
 
 A cross-platform network packet sniffer written in C++20. It captures raw frames from a network interface and parses them by hand (Ethernet, IPv4, TCP, UDP), with no networking library doing the parsing.
 
-> **Status: `0.x` (work in progress).** Capture and Ethernet parsing work. Filtering, analysis and logging are being added. See [Roadmap](#roadmap).
+> **Status: `1.x` (work in progress).** Capture and Ethernet parsing work. Filtering, analysis and logging are being added. See [Roadmap](#roadmap).
 
 ## Features
 
@@ -11,8 +11,8 @@ A cross-platform network packet sniffer written in C++20. It captures raw frames
 | Raw capture on Linux (`AF_PACKET`) | Done |
 | Raw capture on Windows (Npcap, capture/read only) | Done |
 | Ethernet, IPv4, TCP, UDP parsing | Done |
-| Terminal filter / search | In progress |
-| Traffic analysis (spikes, beaconing, odd ports...) | Planned |
+| Terminal filter / search | Testing |
+| Traffic analysis (spikes, beaconing, odd ports...) | In Progress |
 | Logging / storage | Planned |
 | ARP, ICMP, IPv6, DNS, HTTP | Bonus, planned |
 
@@ -87,20 +87,34 @@ sudo ./My_sniffer
 
 1. The program lists the available network interfaces.
 2. Type the interface name (Linux: `eth0`, `wlo1`, or `all`; Windows: the full device name such as `\Device\NPF_{...}`) and press Enter.
-3. Packets are displayed live.
+3. Press a key.
 
 | Key | Action |
 |---|---|
 | `q` | Quit |
-| `/` | Set the live filter *(when the filter is added)* |
-| `?` | Search the captured history *(when the filter is added)* |
+| `h` | Print the help page |
+| `v` | Print version number |
+| `s` | Display the saved history |
+| `a` | Show alerts |
+| `f` | Enter filter mode |
 
-### Filter syntax *(planned)*
+### Filter syntax
+
+| Keyword | Description |
+|---|---|
+| `proto` | Filter by osi protocol <ipv4/tcp/udp> |
+| `port` | Match source OR destination port |
+| `ip` | Match source OR destination IPV4 |
+| `mac` | Match source OR destination MAC |
+| `in/out` | Tell the filter to look for only source OR destiantion |
+
 
 ```
-tcp and port 443
-src ip 10.0.0.5 or udp
-not arp
+proto tcp
+port 443
+port 53 in
+ip 192.168.1.10 out
+mac aa:bb:cc:dd:ee:ff in
 ```
 
 ## Project layout
@@ -113,6 +127,8 @@ src/nic_factory.cpp       picks the NIC implementation for the current OS
 src/protocol_parsing/     Ethernet / IPv4 / TCP / UDP parsers
 src/keyboard.cpp          non-blocking keyboard input (termios / conio)
 src/fcn_helper.cpp        printing and conversion helpers
+src/filer/                files for the filter function
+src/analysis              alerts and detectors
 ```
 
 ## Design choices
@@ -123,7 +139,7 @@ src/fcn_helper.cpp        printing and conversion helpers
 
 ## Roadmap
 
-- [ ] Terminal filter / search
+- [x] Terminal filter / search
 - [ ] Analysis engine (traffic spikes, unauthorized foreign IPs, protocol/port mismatches, beaconing)
 - [ ] Logging to file
 - [ ] Bonus: ARP, ICMP, IPv6, DNS, HTTP, sniffer detection, TUI

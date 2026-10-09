@@ -1,6 +1,7 @@
 #include <ostream>
 #include <iomanip>
 #include <format>
+#include <string>
 #include "fcn_helper.hpp"
 #include "protocol.hpp"
 
@@ -36,6 +37,7 @@ std::ostream& operator<<(std::ostream& os, const ETH_packet& h)
         << duration_cast<std::chrono::microseconds>(h.time - time_point_cast<std::chrono::seconds>(h.time)).count()
         << std::setfill(' ')
         << '\t'
+        << ' '
         << h.hdr
         << ' '
         << h.payload.size()
@@ -45,7 +47,7 @@ std::ostream& operator<<(std::ostream& os, const ETH_packet& h)
 
 std::ostream& print_ipv4(std::ostream& os, const uint8_t *ip) {
     os << std::format(
-        "{}.{}.{}.{}\n",
+        "{}.{}.{}.{}",
         ip[0], ip[1], ip[2], ip[3]);
     return os;
 }
@@ -57,7 +59,7 @@ void printHex(const unsigned char *buf, size_t len) {
     printf("\n");
 }
 
-void print_time(ETH_packet &h) {
+void print_time(const ETH_packet &h) {
     const std::time_t time_t_value = std::chrono::system_clock::to_time_t(h.time);
     std::cout
         << "Time: "
@@ -66,4 +68,12 @@ void print_time(ETH_packet &h) {
         << std::setfill('0')
         << std::setw(6)
         << duration_cast<std::chrono::microseconds>(h.time - time_point_cast<std::chrono::seconds>(h.time)).count();
+}
+
+std::string ipv4_to_string(const uint8_t ip[4])
+{
+    return std::to_string(ip[0]) + "." +
+           std::to_string(ip[1]) + "." +
+           std::to_string(ip[2]) + "." +
+           std::to_string(ip[3]);
 }

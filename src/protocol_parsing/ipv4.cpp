@@ -1,4 +1,5 @@
 #include "protocol.hpp"
+#include <cstddef>
 #include <iostream>
 
 std::optional<IPV4_packet> parse_ipv4(ETH_packet *pck) {
@@ -8,6 +9,6 @@ std::optional<IPV4_packet> parse_ipv4(ETH_packet *pck) {
     IPV4_packet data{};
     data.hdr = *ipv4;
     data.payload = pck->payload.data() + sizeof(IPV4_header);
-    data.payload_len = pck->payload.size() - sizeof(IPV4_header);
+    data.payload_len = static_cast<uint16_t>(pck->payload.size() - sizeof(IPV4_header));
     return data;
 }

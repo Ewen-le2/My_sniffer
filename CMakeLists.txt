@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(My_sniffer VERSION 0.0.1 LANGUAGES CXX)
+project(My_sniffer VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,6 +20,16 @@ add_executable(My_sniffer
     src/protocol_parsing/udp.cpp
 
     src/filter/filter.cpp
+    src/filter/filter_common.cpp
+    src/filter/filter_proto.cpp
+    src/filter/filter_port.cpp
+    src/filter/filter_ip.cpp
+    src/filter/filter_mac.cpp
+
+    src/analysis/analysis.cpp
+    src/analysis/traffic_analyzer.cpp
+    src/analysis/beacon_detector.cpp
+    src/analysis/alert.cpp
 )
 
 if(WIN32)

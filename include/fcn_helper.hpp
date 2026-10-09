@@ -23,4 +23,6 @@ std::ostream& print_ipv4(std::ostream& os, const uint8_t *ip);
 
 void printHex(const unsigned char *buf, size_t len);
 
-void print_time(ETH_packet &pck);
+void print_time(const ETH_packet &pck);
+
+std::string ipv4_to_string(const uint8_t ip[4]);
